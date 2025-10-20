@@ -32,3 +32,22 @@ Features:
 ## Notes
 - This project uses an OpenAI integration as a placeholder. If you provide `OPENAI_API_KEY`, the `/ml/summarize` endpoint will attempt to call OpenAI's API.
 - CI uses pytest and flake8.
+
+## Streamlit deployment
+
+This repository includes a Streamlit front-end at `streamlit_app.py` that uses the same ML summarizer logic (so you can deploy on Streamlit Cloud).
+
+To deploy on Streamlit Cloud:
+
+- Ensure `requirements.txt` contains `streamlit` (it has been added).
+- In Streamlit app settings set the main file to `streamlit_app.py` (Streamlit often auto-detects it).
+- Optionally add an `OPENAI_API_KEY` secret in Streamlit to enable real OpenAI summarization.
+
+Run locally:
+
+```powershell
+python -m pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+The Flask app entrypoint (`run.py`) remains for running the REST API with Gunicorn or Flask directly.
