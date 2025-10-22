@@ -20,11 +20,12 @@ try:
     import openai
     openai.api_key = key
     resp = openai.ChatCompletion.create(
-        model='gpt-4o-mini',
-        messages=[{'role':'user','content':'Say hello in one sentence.'}],
-        max_tokens=20
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": "Say hello in one sentence."}],
+        max_tokens=20,
     )
-    print('Success. Response:')
+
+    print("Success. Response:")
     print(resp.choices[0].message.content)
 except Exception as e:
     print('OpenAI API test failed:', e)
