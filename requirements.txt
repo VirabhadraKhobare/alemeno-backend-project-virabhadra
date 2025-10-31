@@ -1,8 +1,11 @@
+Flask==2.3.3
 streamlit==1.35.0
 openai==0.28.0
 python-dotenv==1.0.0
 requests==2.31.0
 
-# Notes: this requirements.txt is kept minimal for Streamlit Cloud to avoid
-# installing native/development-only packages (psycopg2, gunicorn, test tools).
-# Use `backend-requirements.txt` to install the full backend dependencies.
+# Notes: Adding `Flask` here makes the Streamlit Cloud environment also
+# install Flask so route modules that import Flask won't raise ModuleNotFoundError.
+# This increases the deployment footprint slightly but keeps the runtime
+# imports working without shims. If you prefer to keep `requirements.txt`
+# minimal, remove `Flask==2.3.3` and rely on the import-safe guards and shims.
