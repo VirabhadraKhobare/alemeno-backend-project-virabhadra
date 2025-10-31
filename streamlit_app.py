@@ -87,11 +87,11 @@ def _main_ui():
                     st.experimental_rerun()
 
     # Center the main content by using three columns and placing UI in the middle one
-    _, mid, _ = st.columns([1, 2, 1])
+    _, mid, _ = st.columns([1, 5, 1])
     with mid:
         # place the example selector and uploader *outside* the form so callbacks
         # (on_change) are allowed; they aren't permitted on widgets inside forms.
-        top_cols = st.columns([3, 1])
+        top_cols = st.columns([4, 1])
         with top_cols[0]:
             choice = st.selectbox(
                 "Example texts",
@@ -112,6 +112,7 @@ def _main_ui():
                     st.session_state["show_info"] = f"Loaded file: {getattr(uploaded, 'name', 'uploaded file')}"
                 except Exception as e:
                     st.error(f"Could not read uploaded file: {e}")
+
         # If a transient info message is present, show it before the editor
         if st.session_state.get("show_info"):
             st.info(st.session_state.pop("show_info"))
@@ -120,7 +121,7 @@ def _main_ui():
         with st.form(key="summarize_form"):
             # editor bound to session state so it can be updated externally
             # bind via `key` only so updates to session_state['input_text'] reflect immediately
-            text = st.text_area("Text to summarize", key="input_text", height=260)
+            text = st.text_area("Text to summarize", key="input_text", height=340)
 
             submit = st.form_submit_button("Summarize")
 
