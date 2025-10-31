@@ -20,80 +20,84 @@ except Exception:
 
 st.set_page_config(page_title="Alemêno Backend - Summarizer", layout="centered")
 
-st.title("Alemêno Backend — Text Summarizer")
-st.markdown(
-    "This Streamlit front-end uses the project's ML integration to summarize text. "
-    "It does not run the Flask server; it calls the same Python logic directly."
-)
 
-examples = {
-    "Short paragraph": (
-        "Alemêno is an example backend used for demos. It contains an ML summarizer "
-        "that can use OpenAI if a key is provided."
-    ),
-    "Long article": (
-        "Machine learning models have transformed how we approach automation and "
-        "data-driven decision making. In many cases, combining domain knowledge with "
-        "powerful models yields the best results. The summarizer in this repo is a "
-        "simple wrapper around OpenAI or a heuristic fallback. It serves as a minimal "
-        "example for integration and deployment."
-    ),
-}
+def _main_ui():
+    st.title("Alemêno Backend — Text Summarizer")
 
-
-col_ex, col_action = st.columns([3, 1])
-with col_ex:
-    choice = st.selectbox(
-        "Example texts", ["", *examples.keys()], help="Choose an example to prefill the text area"
+    intro = (
+        "This Streamlit front-end uses the project's ML integration to summarize text. "
+        "It does not run the Flask server; it calls the same Python logic directly."
     )
-    if choice:
-        text = st.text_area("Text to summarize", value=examples[choice], height=220)
-    else:
-        text = st.text_area("Text to summarize", height=220)
+    st.markdown(intro)
 
-with col_action:
-    uploaded = st.file_uploader("Upload a .txt file", type=["txt"])
-    if uploaded is not None:
-        try:
-            content = uploaded.read().decode("utf-8")
-            st.success("File loaded")
-            text = content
-        except Exception as e:
-            st.error(f"Could not read uploaded file: {e}")
+    examples = {
+        "Short paragraph": (
+            "Alemêno is an example backend used for demos. It contains an ML summarizer "
+            "that can use OpenAI if a key is provided."
+        ),
+        "Long article": (
+            "Machine learning models have transformed how we approach automation and "
+            "data-driven decision making. In many cases, combining domain knowledge with "
+            "powerful models yields the best results. The summarizer in this repo is a "
+            "simple wrapper around OpenAI or a heuristic fallback."
+        ),
+    }
+
+    # Center the main content by using three columns and placing UI in the middle one
+    _, mid, _ = st.columns([1, 2, 1])
+    with mid:
+        # Use a form to group input and submit button
+        with st.form(key="summarize_form"):
+            cols = st.columns([3, 1])
+            with cols[0]:
+                choice = st.selectbox("Example texts", ["", *examples.keys()], help="Choose an example to prefill the text area")
+                if choice:
+                    default_text = examples[choice]
+                else:
+                    default_text = ""
+
+                text = st.text_area("Text to summarize", value=default_text, height=260)
+
+            with cols[1]:
+                uploaded = st.file_uploader("Upload a .txt file", type=["txt"]) 
+                if uploaded is not None:
+                    try:
+                        content = uploaded.read().decode("utf-8")
+                        st.success("File loaded")
+                        # Update the text area with uploaded content
+                        text = content
+                    except Exception as e:
+                        st.error(f"Could not read uploaded file: {e}")
+
+            submit = st.form_submit_button("Summarize")
+
+        # Clear button (separate, small)
+        c1, c2, c3 = st.columns([1, 1, 6])
+        with c1:
+            if st.button("Clear"):
+                st.experimental_rerun()
+
+        # Output area
+        if submit:
+            if not text or not text.strip():
+                st.warning("Please provide text or upload a .txt file.")
+            else:
+                with st.spinner("Summarizing..."):
+                    try:
+                        summary = summarize_text(text)
+                        st.success("Summary generated")
+                        st.code(summary)
+
+                        # show downloadable button and copy field
+                        st.download_button("Download summary", data=summary, file_name="summary.txt", mime="text/plain")
+                        st.text_area("Copy summary", value=summary, height=150)
+                    except Exception as e:
+                        st.error(f"Error while summarizing: {e}")
+
+    st.markdown("---")
+    st.info("If you have an `OPENAI_API_KEY` set in Streamlit Cloud secrets (or in your environment), the summarizer will try the OpenAI API; otherwise it uses a simple local heuristic.")
+    st.markdown("## Example Usage")
+    st.write("Choose an example, or upload a .txt file, then press Summarize.")
 
 
-if st.button("Summarize"):
-    if not text or not text.strip():
-        st.warning("Please provide text or upload a .txt file.")
-    else:
-        with st.spinner("Summarizing..."):
-            try:
-                summary = summarize_text(text)
-                st.success("Summary generated")
-                st.code(summary)
-
-                # copy to clipboard button (Streamlit doesn't support clipboard directly;
-                # provide a clickable text area + download)
-                st.text_area("Copy summary", value=summary, height=150)
-
-                # provide download link
-                b = summary.encode("utf-8")
-                b64 = base64.b64encode(b).decode()
-                href = f"data:file/text;base64,{b64}"
-                st.markdown(f"[Download summary]({href})")
-            except Exception as e:
-                st.error(f"Error while summarizing: {e}")
-
-
-if st.button("Clear"):
-    st.experimental_rerun()
-
-
-st.markdown("---")
-st.markdown(
-    "If you have an `OPENAI_API_KEY` set in Streamlit Cloud secrets (or in your environment), "
-    "the summarizer will try the OpenAI API; otherwise it uses a simple local heuristic."
-)
-
-st.markdown("## Example Usage")
-st.write("Choose an example, or upload a .txt file, then press Summarize.")
+_main_ui()
