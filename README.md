@@ -17,11 +17,9 @@ License: MIT
 
 ## Maintainers & Contact
 
-- Maintainer: Virabhadra Khobare
-- Contact: please replace the placeholder with your preferred email/address: `your-email@example.com`
-- GitHub: https://github.com/VirabhadraKhobare
-
-If you want me to add an email or preferred contact, tell me and I'll update this file.
+-- Maintainer: Virabhadra Khobare
+-- Contact: Email: `virbhadrakhobare111@gmail.com` | Phone: `+91 8379980265`
+-- GitHub: https://github.com/VirabhadraKhobare
 
 ## Contributing
 
