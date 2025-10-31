@@ -1,6 +1,9 @@
 # Enhanced Backend Internship Project
 This project is an enhanced backend prepared for the internship assignment.
 
+Author: Virabhadra Khobare
+License: MIT
+
 Features:
 - Flask REST API (health, items CRUD)
 - ML integration module (OpenAI + mock fallback)
