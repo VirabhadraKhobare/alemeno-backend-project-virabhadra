@@ -2,6 +2,7 @@ import base64
 import streamlit as st
 import importlib.util
 from pathlib import Path
+from datetime import datetime
 
 # Try to import the integration module normally (works in local dev).
 # If that triggers package-level imports (Flask/SQLAlchemy) which aren't
@@ -22,6 +23,17 @@ st.set_page_config(page_title="Alemêno Backend - Summarizer", layout="centered"
 
 
 def _main_ui():
+    # Small CSS tweak to keep content narrow and centered for a cleaner look
+    st.markdown(
+        """
+        <style>
+        .main .block-container{ max-width: 900px; padding-left: 1rem; padding-right: 1rem; }
+        @media (max-width: 800px) { .main .block-container{ padding-left: 0.5rem; padding-right: 0.5rem; } }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.title("Alemêno Backend — Text Summarizer")
 
     intro = (
@@ -43,6 +55,35 @@ def _main_ui():
         ),
     }
 
+    # Ensure session state keys exist
+    if "input_text" not in st.session_state:
+        st.session_state["input_text"] = ""
+    if "history" not in st.session_state:
+        st.session_state["history"] = []
+
+    def _update_example():
+        # copy the selected example into the editor immediately
+        sel = st.session_state.get("choice_select", "")
+        if sel:
+            st.session_state["input_text"] = examples.get(sel, "")
+
+    # Sidebar - History
+    st.sidebar.header("History")
+    history = st.session_state.get("history", [])
+    if not history:
+        st.sidebar.write("No summaries yet.")
+    else:
+        for i, item in enumerate(history):
+            with st.sidebar.expander(f"{i+1}. {item['summary'][:60]}"):
+                st.write(item["summary"])
+                st.write(f"Saved: {item['time']}")
+                if st.button("Load into editor", key=f"load_{i}"):
+                    st.session_state["input_text"] = item["text"]
+                if st.button("Delete", key=f"del_{i}"):
+                    history.pop(i)
+                    st.session_state["history"] = history
+                    st.experimental_rerun()
+
     # Center the main content by using three columns and placing UI in the middle one
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
@@ -50,13 +91,17 @@ def _main_ui():
         with st.form(key="summarize_form"):
             cols = st.columns([3, 1])
             with cols[0]:
-                choice = st.selectbox("Example texts", ["", *examples.keys()], help="Choose an example to prefill the text area")
-                if choice:
-                    default_text = examples[choice]
-                else:
-                    default_text = ""
+                # live-updating selectbox using session_state
+                choice = st.selectbox(
+                    "Example texts",
+                    ["", *examples.keys()],
+                    key="choice_select",
+                    help="Choose an example to prefill the text area",
+                    on_change=_update_example,
+                )
 
-                text = st.text_area("Text to summarize", value=default_text, height=260)
+                # editor bound to session state so it can be updated externally
+                text = st.text_area("Text to summarize", value=st.session_state.get("input_text", ""), key="input_text", height=260)
 
             with cols[1]:
                 uploaded = st.file_uploader("Upload a .txt file", type=["txt"]) 
@@ -65,7 +110,7 @@ def _main_ui():
                         content = uploaded.read().decode("utf-8")
                         st.success("File loaded")
                         # Update the text area with uploaded content
-                        text = content
+                        st.session_state["input_text"] = content
                     except Exception as e:
                         st.error(f"Could not read uploaded file: {e}")
 
@@ -75,10 +120,12 @@ def _main_ui():
         c1, c2, c3 = st.columns([1, 1, 6])
         with c1:
             if st.button("Clear"):
+                st.session_state["input_text"] = ""
                 st.experimental_rerun()
 
         # Output area
         if submit:
+            text = st.session_state.get("input_text", "")
             if not text or not text.strip():
                 st.warning("Please provide text or upload a .txt file.")
             else:
@@ -91,6 +138,12 @@ def _main_ui():
                         # show downloadable button and copy field
                         st.download_button("Download summary", data=summary, file_name="summary.txt", mime="text/plain")
                         st.text_area("Copy summary", value=summary, height=150)
+
+                        # save to history (keep most recent first)
+                        history = st.session_state.get("history", [])
+                        history.insert(0, {"time": datetime.utcnow().isoformat(), "text": text, "summary": summary})
+                        # limit history length
+                        st.session_state["history"] = history[:20]
                     except Exception as e:
                         st.error(f"Error while summarizing: {e}")
 
