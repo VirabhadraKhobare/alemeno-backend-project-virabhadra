@@ -1,4 +1,5 @@
 import base64
+import os
 import streamlit as st
 import importlib.util
 from pathlib import Path
@@ -95,6 +96,11 @@ def _main_ui():
         st.session_state["input_text"] = ""
     if "history" not in st.session_state:
         st.session_state["history"] = []
+    # session keys for OpenAI controls
+    if "openai_key_input" not in st.session_state:
+        st.session_state["openai_key_input"] = ""
+    if "use_api_pref" not in st.session_state:
+        st.session_state["use_api_pref"] = True
 
     def _update_example():
         # copy the selected example into the editor immediately
@@ -180,7 +186,16 @@ def _main_ui():
             else:
                 with st.spinner("Summarizing..."):
                     try:
-                        summary = summarize_text(text)
+                        # Decide which API key (if any) to use for this call.
+                        use_api = st.session_state.get("use_api_pref", True)
+                        if not use_api:
+                            api_for_call = False
+                        elif st.session_state.get("openai_key_input"):
+                            api_for_call = st.session_state.get("openai_key_input")
+                        else:
+                            api_for_call = None
+
+                        summary = summarize_text(text, api_key=api_for_call)
                         st.success("Summary generated")
                         st.code(summary)
 
@@ -197,7 +212,46 @@ def _main_ui():
                         st.error(f"Error while summarizing: {e}")
 
     st.markdown("---")
-    st.info("If you have an `OPENAI_API_KEY` set in Streamlit Cloud secrets (or in your environment), the summarizer will try the OpenAI API; otherwise it uses a simple local heuristic.")
+
+    # --- OpenAI key status and controls ---
+    # Detect keys from environment or Streamlit secrets (if available)
+    env_key = os.getenv("OPENAI_API_KEY")
+    secret_key = None
+    try:
+        secret_key = st.secrets.get("OPENAI_API_KEY") if hasattr(st, "secrets") else None
+    except Exception:
+        secret_key = None
+
+    st.header("Integration & API")
+    col_status, col_controls = st.columns([3, 2])
+    with col_status:
+        if env_key:
+            st.success("OpenAI API key detected in environment — the summarizer can use OpenAI.")
+        elif secret_key:
+            st.success("OpenAI API key found in Streamlit secrets — the summarizer can use OpenAI.")
+        else:
+            st.info("No OpenAI API key detected. The summarizer will use a local heuristic unless you provide a key for this session.")
+
+    with col_controls:
+        # session-only key input (password) — stored in session_state only
+        st.text_input("Session OpenAI key", type="password", key="openai_key_input", placeholder="Paste API key to use for this session", help="This key is stored only for your current session and not persisted to files.")
+        st.checkbox("Prefer OpenAI API when available", value=True, key="use_api_pref")
+        if st.button("Test session key"):
+            test_sample = "This is a short test sentence. Please summarize it briefly."
+            api_for_test = None
+            if st.session_state.get("openai_key_input"):
+                api_for_test = st.session_state.get("openai_key_input")
+            elif env_key or secret_key:
+                api_for_test = None
+            else:
+                api_for_test = False
+            try:
+                test_out = summarize_text(test_sample, api_key=api_for_test)
+                st.success("Test completed — sample summary below")
+                st.write(test_out)
+            except Exception as e:
+                st.error(f"Test failed: {e}")
+
     st.markdown("## Example Usage")
     st.write("Choose an example, or upload a .txt file, then press Summarize.")
 
