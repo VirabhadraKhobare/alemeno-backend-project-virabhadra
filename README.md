@@ -4,6 +4,47 @@ This project is an enhanced backend prepared for the internship assignment.
 Author: Virabhadra Khobare
 License: MIT
 
+<!-- Badges -->
+[![License](https://img.shields.io/github/license/VirabhadraKhobare/alemeno-backend-project-virabhadra)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/VirabhadraKhobare/alemeno-backend-project-virabhadra)](https://github.com/VirabhadraKhobare/alemeno-backend-project-virabhadra/commits/main)
+[![Open Issues](https://img.shields.io/github/issues/VirabhadraKhobare/alemeno-backend-project-virabhadra)](https://github.com/VirabhadraKhobare/alemeno-backend-project-virabhadra/issues)
+[![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/)
+
+## Contributors
+
+- Virabhadra Khobare (maintainer / author)
+- Contributions are welcome — please open issues or pull requests on GitHub.
+
+## Maintainers & Contact
+
+- Maintainer: Virabhadra Khobare
+- Contact: please replace the placeholder with your preferred email/address: `your-email@example.com`
+- GitHub: https://github.com/VirabhadraKhobare
+
+If you want me to add an email or preferred contact, tell me and I'll update this file.
+
+## Contributing
+
+1. Fork the repository and create a feature branch.
+2. Run tests and linters locally (see `backend-requirements.txt`).
+3. Open a pull request describing your changes.
+
+Please follow these guidelines:
+- Keep changes focused and small.
+- Include tests for new behavior where appropriate.
+- Follow existing code style.
+
+## Reporting Issues
+
+Use the repository's GitHub Issues page to report bugs or request features: https://github.com/VirabhadraKhobare/alemeno-backend-project-virabhadra/issues
+
+Include a short description, steps to reproduce, and any relevant logs or screenshots.
+
+## Code of Conduct
+
+Please follow a standard open source code of conduct when participating. If you'd like, I can add a `CODE_OF_CONDUCT.md` file based on the Contributor Covenant.
+
+
 Features:
 - Flask REST API (health, items CRUD)
 - ML integration module (OpenAI + mock fallback)
