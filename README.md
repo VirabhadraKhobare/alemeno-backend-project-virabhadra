@@ -12,6 +12,13 @@ Features:
 ## Run locally (recommended for development)
 1. Create a virtualenv: `python -m venv venv && source venv/bin/activate`
 2. Install: `pip install -r requirements.txt`
+   - For Streamlit Cloud (frontend) we keep `requirements.txt` minimal to avoid
+      native build failures. To install the full backend dependencies (Flask,
+      SQLAlchemy, psycopg2, etc.) use:
+
+      pip install -r backend-requirements.txt
+
+   - For simple Streamlit testing locally use the base `requirements.txt`.
 3. Export env vars:
    - `FLASK_APP=run.py`
    - `FLASK_ENV=development`
