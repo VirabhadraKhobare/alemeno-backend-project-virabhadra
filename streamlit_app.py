@@ -1,7 +1,21 @@
 import base64
 import streamlit as st
+import importlib.util
+from pathlib import Path
 
-from app.ml.integration import summarize_text
+# Try to import the integration module normally (works in local dev).
+# If that triggers package-level imports (Flask/SQLAlchemy) which aren't
+# available in the Streamlit Cloud runtime, fall back to loading the module
+# directly from its file so we avoid executing `app/__init__.py`.
+try:
+    from app.ml.integration import summarize_text  # type: ignore
+except Exception:
+    integration_path = Path(__file__).resolve().parent / "app" / "ml" / "integration.py"
+    spec = importlib.util.spec_from_file_location("app_ml_integration", str(integration_path))
+    integration = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(integration)  # type: ignore
+    summarize_text = integration.summarize_text
 
 
 st.set_page_config(page_title="Alemêno Backend - Summarizer", layout="centered")
