@@ -1,18 +1,23 @@
-from flask import Blueprint, jsonify, request
+try:
+    from flask import Blueprint, jsonify, request
+except Exception:  # pragma: no cover - import may fail in Streamlit runtime
+    Blueprint = None  # type: ignore
+    def jsonify(x):
+        return x
+    request = None  # type: ignore
+
 from ..models import Item
 from ..extensions import db
 
 
-bp = Blueprint("items", __name__)
+bp = Blueprint("items", __name__) if Blueprint else None
 
 
-@bp.route("/", methods=["GET"])
 def list_items():
     items = Item.query.all()
     return jsonify([i.to_dict() for i in items]), 200
 
 
-@bp.route("/", methods=["POST"])
 def create_item():
     data = request.get_json() or {}
     name = data.get("name")
@@ -27,7 +32,6 @@ def create_item():
     return jsonify(item.to_dict()), 201
 
 
-@bp.route("/<int:item_id>", methods=["GET"])
 def get_item(item_id: int):
     item = Item.query.get(item_id)
     if not item:
@@ -35,7 +39,6 @@ def get_item(item_id: int):
     return jsonify(item.to_dict()), 200
 
 
-@bp.route("/<int:item_id>", methods=["DELETE"])
 def delete_item(item_id: int):
     item = Item.query.get(item_id)
     if not item:

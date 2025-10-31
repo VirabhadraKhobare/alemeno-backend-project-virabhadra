@@ -1,11 +1,17 @@
-from flask import Blueprint, request, jsonify
+try:
+    from flask import Blueprint, request, jsonify
+except Exception:  # pragma: no cover - import may fail in Streamlit runtime
+    Blueprint = None  # type: ignore
+    def jsonify(x):
+        return x
+    request = None  # type: ignore
+
 from ..ml.integration import summarize_text
 
 
-bp = Blueprint("ml", __name__)
+bp = Blueprint("ml", __name__) if Blueprint else None
 
 
-@bp.route("/summarize", methods=["POST"])
 def summarize():
     data = request.get_json() or {}
     text = data.get("text", "")
