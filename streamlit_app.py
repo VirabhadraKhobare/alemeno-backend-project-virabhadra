@@ -70,13 +70,47 @@ def _main_ui():
         unsafe_allow_html=True,
     )
 
-    st.title("Alemêno Backend — Text Summarizer")
-
-    intro = (
-        "This Streamlit front-end uses the project's ML integration to summarize text. "
-        "It does not run the Flask server; it calls the same Python logic directly."
+    # Styled heading: use HTML so we can apply a subtle gradient and tighter spacing
+    st.markdown(
+        """
+        <div class="app-header">
+          <h1 class="app-title">Alemêno Backend — Text Summarizer</h1>
+          <p class="app-subtitle">This Streamlit front-end uses the project's ML integration to summarize text. It does not run the Flask server; it calls the same Python logic directly.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    st.markdown(intro)
+
+    # Additional CSS for header styling (kept minimal and robust)
+    st.markdown(
+        """
+        <style>
+        .app-header { text-align: center; margin-bottom: 18px; }
+        .app-title {
+            font-size: 36px;
+            margin: 6px 0 6px 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+            background: linear-gradient(90deg, #6ee7b7, #60a5fa 60%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .app-subtitle {
+            color: rgba(255,255,255,0.7);
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        @media (max-width: 800px) {
+            .app-title { font-size: 26px; }
+            .app-subtitle { font-size: 13px; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
     examples = {
         "Short paragraph": (
