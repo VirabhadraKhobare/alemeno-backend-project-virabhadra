@@ -1,9 +1,17 @@
 import os
-from flask import Flask
 from .extensions import db
 
 
 def create_app():
+    """Create and configure the Flask application.
+
+    NOTE: delay importing Flask until this function runs so the package can be
+    imported in lightweight environments (for example Streamlit Cloud) that
+    don't have Flask installed. Importing Flask at module import time caused
+    ModuleNotFoundError for Streamlit deployments.
+    """
+    from flask import Flask
+
     app = Flask(__name__, instance_relative_config=False)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///dev.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
