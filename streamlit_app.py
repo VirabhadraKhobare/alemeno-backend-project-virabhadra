@@ -87,32 +87,33 @@ def _main_ui():
     # Center the main content by using three columns and placing UI in the middle one
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
-        # Use a form to group input and submit button
+        # place the example selector and uploader *outside* the form so callbacks
+        # (on_change) are allowed; they aren't permitted on widgets inside forms.
+        top_cols = st.columns([3, 1])
+        with top_cols[0]:
+            choice = st.selectbox(
+                "Example texts",
+                ["", *examples.keys()],
+                key="choice_select",
+                help="Choose an example to prefill the text area",
+                on_change=_update_example,
+            )
+
+        with top_cols[1]:
+            uploaded = st.file_uploader("Upload a .txt file", type=["txt"]) 
+            if uploaded is not None:
+                try:
+                    content = uploaded.read().decode("utf-8")
+                    st.success("File loaded")
+                    # Update the text area with uploaded content
+                    st.session_state["input_text"] = content
+                except Exception as e:
+                    st.error(f"Could not read uploaded file: {e}")
+
+        # Use a form to group the editor and the submit button
         with st.form(key="summarize_form"):
-            cols = st.columns([3, 1])
-            with cols[0]:
-                # live-updating selectbox using session_state
-                choice = st.selectbox(
-                    "Example texts",
-                    ["", *examples.keys()],
-                    key="choice_select",
-                    help="Choose an example to prefill the text area",
-                    on_change=_update_example,
-                )
-
-                # editor bound to session state so it can be updated externally
-                text = st.text_area("Text to summarize", value=st.session_state.get("input_text", ""), key="input_text", height=260)
-
-            with cols[1]:
-                uploaded = st.file_uploader("Upload a .txt file", type=["txt"]) 
-                if uploaded is not None:
-                    try:
-                        content = uploaded.read().decode("utf-8")
-                        st.success("File loaded")
-                        # Update the text area with uploaded content
-                        st.session_state["input_text"] = content
-                    except Exception as e:
-                        st.error(f"Could not read uploaded file: {e}")
+            # editor bound to session state so it can be updated externally
+            text = st.text_area("Text to summarize", value=st.session_state.get("input_text", ""), key="input_text", height=260)
 
             submit = st.form_submit_button("Summarize")
 
