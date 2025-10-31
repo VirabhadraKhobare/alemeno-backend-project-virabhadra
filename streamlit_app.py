@@ -29,6 +29,41 @@ def _main_ui():
         <style>
         .main .block-container{ max-width: 900px; padding-left: 1rem; padding-right: 1rem; }
         @media (max-width: 800px) { .main .block-container{ padding-left: 0.5rem; padding-right: 0.5rem; } }
+
+        /* Uploader card: target the FileUploader test id which Streamlit sets */
+        div[data-testid="stFileUploader"] {
+            background: rgba(255,255,255,0.02);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.04);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+            display: block;
+        }
+
+        /* Slightly tighten the caption and label spacing */
+        div[data-testid="stFileUploader"] .stMarkdown, div[data-testid="stFileUploader"] .stText {
+            margin: 0 0 6px 0;
+        }
+
+        /* Make the uploader full-width on small screens */
+        @media (max-width: 800px) {
+            div[data-testid="stFileUploader"] { width: 100% !important; }
+        }
+
+        /* Badge displayed next to uploader label */
+        .uploader-badge{
+            display: inline-block;
+            background: rgba(255,255,255,0.03);
+            color: #fff;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-right: 8px;
+            font-size: 12px;
+            vertical-align: middle;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
         </style>
         """,
         unsafe_allow_html=True,
@@ -89,20 +124,31 @@ def _main_ui():
     # Center the main content by using three columns and placing UI in the middle one
     _, mid, _ = st.columns([1, 5, 1])
     with mid:
-        # place the example selector and uploader *outside* the form so callbacks
-        # (on_change) are allowed; they aren't permitted on widgets inside forms.
-        top_cols = st.columns([4, 1])
-        with top_cols[0]:
-            choice = st.selectbox(
-                "Example texts",
-                ["", *examples.keys()],
-                key="choice_select",
-                help="Choose an example to prefill the text area",
-                on_change=_update_example,
-            )
+        # place the example selector above the editor
+        choice = st.selectbox(
+            "Example texts",
+            ["", *examples.keys()],
+            key="choice_select",
+            help="Choose an example to prefill the text area",
+            on_change=_update_example,
+        )
 
-        with top_cols[1]:
-            uploaded = st.file_uploader("Upload a .txt file", type=["txt"]) 
+        # If a transient info message is present, show it before the editor
+        if st.session_state.get("show_info"):
+            st.info(st.session_state.pop("show_info"))
+
+        # Put uploader below the example selector and center it in a narrow column
+        # so it displays vertically under the 'Example texts' label on desktop and
+        # naturally stacks on small screens.
+        u_left, u_mid, u_right = st.columns([1, 2, 1])
+        with u_mid:
+            # uploader label with a small badge (uses HTML for precise layout)
+            st.markdown(
+                '<div class="uploader-label"><span class="uploader-badge">📄 TXT</span> <strong>Upload a .txt file</strong></div>',
+                unsafe_allow_html=True,
+            )
+            uploaded = st.file_uploader("", type=["txt"], key="uploader", help="Upload a plain text (.txt) file — max 200MB")
+            st.caption("Accepted: .txt — max 200MB per file")
             if uploaded is not None:
                 try:
                     content = uploaded.read().decode("utf-8")
@@ -113,17 +159,11 @@ def _main_ui():
                 except Exception as e:
                     st.error(f"Could not read uploaded file: {e}")
 
-        # If a transient info message is present, show it before the editor
-        if st.session_state.get("show_info"):
-            st.info(st.session_state.pop("show_info"))
-
-        # Use a form to group the editor and the submit button
-        with st.form(key="summarize_form"):
-            # editor bound to session state so it can be updated externally
-            # bind via `key` only so updates to session_state['input_text'] reflect immediately
-            text = st.text_area("Text to summarize", key="input_text", height=340)
-
-            submit = st.form_submit_button("Summarize")
+        # Editor comes after the uploader, occupying the full width of the center column
+        with st.container():
+            with st.form(key="summarize_form"):
+                text = st.text_area("Text to summarize", key="input_text", height=340)
+                submit = st.form_submit_button("Summarize")
 
         # Clear button (separate, small)
         c1, c2, c3 = st.columns([1, 1, 6])
