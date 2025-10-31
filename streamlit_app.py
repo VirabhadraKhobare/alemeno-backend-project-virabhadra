@@ -66,6 +66,8 @@ def _main_ui():
         sel = st.session_state.get("choice_select", "")
         if sel:
             st.session_state["input_text"] = examples.get(sel, "")
+            # transient UI affordance: show small info that editor was updated
+            st.session_state["show_info"] = f"Prefilled editor from example: {sel}"
 
     # Sidebar - History
     st.sidebar.header("History")
@@ -107,8 +109,12 @@ def _main_ui():
                     st.success("File loaded")
                     # Update the text area with uploaded content
                     st.session_state["input_text"] = content
+                    st.session_state["show_info"] = f"Loaded file: {getattr(uploaded, 'name', 'uploaded file')}"
                 except Exception as e:
                     st.error(f"Could not read uploaded file: {e}")
+        # If a transient info message is present, show it before the editor
+        if st.session_state.get("show_info"):
+            st.info(st.session_state.pop("show_info"))
 
         # Use a form to group the editor and the submit button
         with st.form(key="summarize_form"):
