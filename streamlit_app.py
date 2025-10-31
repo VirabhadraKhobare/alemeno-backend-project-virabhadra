@@ -119,7 +119,8 @@ def _main_ui():
         # Use a form to group the editor and the submit button
         with st.form(key="summarize_form"):
             # editor bound to session state so it can be updated externally
-            text = st.text_area("Text to summarize", value=st.session_state.get("input_text", ""), key="input_text", height=260)
+            # bind via `key` only so updates to session_state['input_text'] reflect immediately
+            text = st.text_area("Text to summarize", key="input_text", height=260)
 
             submit = st.form_submit_button("Summarize")
 
